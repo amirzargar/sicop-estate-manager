@@ -1,27 +1,15 @@
+
 import { GoogleGenAI } from "@google/genai";
 import { Estate, Unit } from "../types";
 
-const apiKey = process.env.API_KEY || '';
-
-// Initialize specific Gemini model
-let ai: GoogleGenAI | null = null;
-try {
-    if (apiKey) {
-        ai = new GoogleGenAI({ apiKey });
-    }
-} catch (error) {
-    console.error("Failed to initialize GoogleGenAI", error);
-}
+// Always initialize with process.env.API_KEY directly as per guidelines
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const askSICOPAssistant = async (
   query: string,
   estates: Estate[],
   units: Unit[]
 ): Promise<string> => {
-  if (!ai) {
-    return "API Key not configured. Please check your environment variables.";
-  }
-
   // Create a context string from the current state of the application
   const contextData = JSON.stringify({
     estates: estates.map(e => ({ name: e.name, location: e.location })),
@@ -53,14 +41,16 @@ export const askSICOPAssistant = async (
   `;
 
   try {
+    // Select gemini-3-flash-preview for basic text and reasoning tasks
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: query,
       config: {
         systemInstruction: systemInstruction,
       }
     });
 
+    // Directly access .text property as per guidelines (not a method call)
     return response.text || "I couldn't generate a response based on that query.";
   } catch (error) {
     console.error("Gemini API Error:", error);

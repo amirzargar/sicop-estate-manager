@@ -19,6 +19,15 @@ export interface UnitHistory {
   description: string;
 }
 
+export interface RentPayment {
+  id: string;
+  date: string;
+  amount: number;
+  status: 'PAID' | 'PENDING' | 'PARTIAL';
+  receiptNumber?: string;
+  period: string; // e.g., "May 2024"
+}
+
 export type RequestType = 
   | 'NEW_UNIT' 
   | 'ESTATE_EDIT' 
@@ -72,6 +81,7 @@ export interface Unit {
   lastRentPaymentDate: string;
   
   history: UnitHistory[];
+  rentHistory?: RentPayment[];
 }
 
 export interface User {
@@ -84,4 +94,4 @@ export interface User {
   assignedEstateIds?: string[];
 }
 
-export type ViewState = 'DASHBOARD' | 'ESTATES' | 'UNITS' | 'UNIT_DETAIL' | 'AI_ASSISTANT' | 'REQUESTS';
+export type ViewState = 'DASHBOARD' | 'ESTATES' | 'UNITS' | 'UNIT_DETAIL' | 'AI_ASSISTANT' | 'REQUESTS' | 'USER_MANAGEMENT';

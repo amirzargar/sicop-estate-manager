@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { User, UserRole } from '../types';
-import { MOCK_USERS } from '../constants';
 import { Building2, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
 
 interface LoginProps {
   onLogin: (user: User) => void;
+  users: User[];
 }
 
-export const Login: React.FC<LoginProps> = ({ onLogin }) => {
+export const Login: React.FC<LoginProps> = ({ onLogin, users }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -20,7 +20,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
     // Simulate API call delay
     setTimeout(() => {
-      const user = MOCK_USERS.find(u => u.username === username && u.password === password);
+      const user = users.find(u => u.username === username && u.password === password);
       
       if (user) {
         onLogin(user);

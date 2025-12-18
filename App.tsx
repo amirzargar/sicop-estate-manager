@@ -1,22 +1,57 @@
-import React, { useState, useMemo } from 'react';
-import { LayoutDashboard, Building, Factory, MessageSquare, Settings, LogOut, FileSignature, Bell, ClipboardList } from 'lucide-react';
+
+import React, { useState, useMemo, useEffect } from 'react';
+import { LayoutDashboard, Building, Factory, MessageSquare, Settings, LogOut, FileSignature, Bell, ClipboardList, Shield } from 'lucide-react';
 import { UserRole, ViewState, Estate, Unit, User, ServiceRequest } from './types';
-import { MOCK_ESTATES, MOCK_UNITS, MOCK_REQUESTS } from './constants';
+import { MOCK_ESTATES, MOCK_UNITS, MOCK_REQUESTS, MOCK_USERS } from './constants';
 import { Dashboard } from './components/Dashboard';
 import { EstateManager } from './components/EstateManager';
 import { UnitList } from './components/UnitList';
 import { UnitDetail } from './components/UnitDetail';
 import { AIChat } from './components/AIChat';
 import { RequestManager } from './components/RequestManager';
+import { UserManagement } from './components/UserManagement';
 import { Login } from './components/Login';
+
+// Utility for persistence
+const STORAGE_KEY = 'sicop_estate_manager_v2';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState<ViewState>('DASHBOARD');
+  
+  // Data State
   const [estates, setEstates] = useState<Estate[]>(MOCK_ESTATES);
   const [units, setUnits] = useState<Unit[]>(MOCK_UNITS);
   const [requests, setRequests] = useState<ServiceRequest[]>(MOCK_REQUESTS);
+  const [users, setUsers] = useState<User[]>(MOCK_USERS);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
+
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // --- Persistence Logic ---
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.estates) setEstates(parsed.estates);
+        if (parsed.units) setUnits(parsed.units);
+        if (parsed.requests) setRequests(parsed.requests);
+        if (parsed.users) setUsers(parsed.users);
+      } catch (e) {
+        console.error("Failed to parse saved state", e);
+      }
+    }
+    setIsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        estates, units, requests, users
+      }));
+    }
+  }, [estates, units, requests, users, isLoaded]);
 
   // --- Auth Handlers ---
   const handleLogin = (user: User) => {
@@ -63,7 +98,6 @@ export default function App() {
     if (currentUser.role === UserRole.ADMIN) return units;
 
     if (currentUser.role === UserRole.MANAGER) {
-      // Managers see units in their assigned estates
       const estateIds = visibleEstates.map(e => e.id);
       return units.filter(u => estateIds.includes(u.estateId));
     }
@@ -84,11 +118,7 @@ export default function App() {
       }
       
       if (currentUser.role === UserRole.MANAGER) {
-          // Manager sees requests related to units in their estates
           const estateIds = visibleEstates.map(e => e.id);
-          // Filter requests where the target unit belongs to one of these estates
-          // For NEW_UNIT requests, they have estateId directly. 
-          // For others, we might need to look up unit. But we store estateId in request now for simpler sort.
           return requests.filter(r => r.estateId && estateIds.includes(r.estateId));
       }
 
@@ -98,11 +128,14 @@ export default function App() {
       return [];
   }, [currentUser, requests, visibleEstates]);
 
-  // 4. Notification Badges
+  // 4. Notification Badges (FIXED PERSISTENCE ISSUE HERE)
   const pendingCount = useMemo(() => {
       if (!currentUser) return 0;
       if (currentUser.role === UserRole.ADMIN) {
-          return requests.filter(r => r.status === 'FORWARDED_TO_ADMIN' || r.type === 'NEW_UNIT' || r.type === 'ESTATE_EDIT').length;
+          // Admin sees items that are forwarded or direct system requests that are still PENDING
+          return requests.filter(r => 
+            (r.status === 'FORWARDED_TO_ADMIN' || r.status === 'PENDING')
+          ).length;
       }
       if (currentUser.role === UserRole.MANAGER) {
           return visibleRequests.filter(r => r.status === 'SUBMITTED_TO_MANAGER').length;
@@ -136,6 +169,13 @@ export default function App() {
     setUnits([...units, newUnit]);
   }
 
+  const handleUpdateUnit = (updatedUnit: Unit) => {
+    setUnits(units.map(u => u.id === updatedUnit.id ? updatedUnit : u));
+    if (selectedUnit?.id === updatedUnit.id) {
+      setSelectedUnit(updatedUnit);
+    }
+  };
+
   const handleAddRequest = (requestData: Partial<ServiceRequest>) => {
      const newReq: ServiceRequest = {
        id: `req${Date.now()}`,
@@ -166,7 +206,6 @@ export default function App() {
     ));
 
     // 2. Apply Changes based on Type and Payload
-    // Note: This logic assumes 'payload' contains keys matching the Unit interface
     if (request.type === 'NEW_UNIT' && request.payload) {
         setUnits([...units, { ...request.payload, id: `u${Date.now()}` }]);
         alert('Request Approved: New Unit Created.');
@@ -176,8 +215,6 @@ export default function App() {
         alert('Request Approved: Estate Updated.');
     }
     else if (request.payload) {
-        // Generic update for Unit based on payload
-        // Works for CONTACT_CHANGE, ACTIVITY_CHANGE, etc. if payload has correct keys
         setUnits(units.map(u => u.id === request.targetId ? { ...u, ...request.payload } : u));
         alert('Request Approved: Unit Details Updated.');
     }
@@ -221,7 +258,7 @@ export default function App() {
   // --- Main Render ---
 
   if (!currentUser) {
-    return <Login onLogin={handleLogin} />;
+    return <Login onLogin={handleLogin} users={users} />;
   }
 
   return (
@@ -271,6 +308,14 @@ export default function App() {
             />
           )}
 
+          {currentUser.role === UserRole.ADMIN && (
+             <NavItem 
+                view="USER_MANAGEMENT" 
+                icon={<Shield size={20} />} 
+                label="Users" 
+             />
+          )}
+
           <NavItem view="AI_ASSISTANT" icon={<MessageSquare size={20} />} label="AI Assistant" />
         </nav>
 
@@ -294,7 +339,7 @@ export default function App() {
       <main className="flex-1 overflow-auto flex flex-col h-screen">
         <header className="bg-white border-b border-slate-200 h-16 flex items-center px-8 justify-between sticky top-0 z-20">
            <h2 className="text-xl font-semibold text-slate-800 capitalize">
-             {currentView === 'UNIT_DETAIL' ? 'Unit Details' : currentView.toLowerCase()}
+             {currentView === 'UNIT_DETAIL' ? 'Unit Details' : currentView.toLowerCase().replace('_', ' ')}
            </h2>
            <div className="flex items-center gap-4">
               <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
@@ -336,10 +381,9 @@ export default function App() {
               estate={estates.find(e => e.id === selectedUnit.estateId)}
               userRole={currentUser.role}
               requests={requests}
+              onUpdateUnit={handleUpdateUnit}
               onRequestAdd={handleAddRequest}
               onRequestUpdate={(id, status, comments) => {
-                  // This callback is mostly for direct unit detail actions, but main workflow is via RequestManager
-                  // We can keep it to handle rejections from UnitDetail if needed (though UI might not expose it there for unit holders)
                   if (status === 'REJECTED') handleRejectRequest(id, comments || '');
               }}
               onBack={() => {
@@ -357,10 +401,22 @@ export default function App() {
           {currentView === 'REQUESTS' && (
              <RequestManager 
                 requests={visibleRequests} 
+                users={users}
                 onApprove={handleApproveRequest}
                 onForward={handleForwardRequest}
                 onReject={handleRejectRequest}
                 userRole={currentUser.role}
+             />
+          )}
+
+          {currentView === 'USER_MANAGEMENT' && currentUser.role === UserRole.ADMIN && (
+             <UserManagement 
+                users={users}
+                estates={estates}
+                units={units}
+                onAddUser={(nu) => setUsers([...users, nu])}
+                onUpdateUser={(uu) => setUsers(users.map(u => u.id === uu.id ? uu : u))}
+                onDeleteUser={(id) => setUsers(users.filter(u => u.id !== id))}
              />
           )}
 

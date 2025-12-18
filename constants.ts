@@ -25,6 +25,11 @@ export const MOCK_UNITS: Unit[] = [
     lastRentPaymentDate: '2024-05-05',
     history: [
       { id: 'h1', date: '2022-03-10', type: 'NAME_CHANGE', description: 'Changed from Bashir Carpentry to Alpine Woodworks' }
+    ],
+    rentHistory: [
+      { id: 'p1', date: '2024-05-05', amount: 15000, status: 'PAID', receiptNumber: 'RCP-1024', period: 'May 2024' },
+      { id: 'p2', date: '2024-04-02', amount: 15000, status: 'PAID', receiptNumber: 'RCP-0912', period: 'April 2024' },
+      { id: 'p3', date: '2024-03-05', amount: 15000, status: 'PAID', receiptNumber: 'RCP-0855', period: 'March 2024' },
     ]
   },
   {
@@ -43,7 +48,11 @@ export const MOCK_UNITS: Unit[] = [
     monthlyRent: 25000,
     rentStatus: 'OVERDUE',
     lastRentPaymentDate: '2024-02-28',
-    history: []
+    history: [],
+    rentHistory: [
+      { id: 'p4', date: '2024-02-28', amount: 25000, status: 'PAID', receiptNumber: 'RCP-0789', period: 'February 2024' },
+      { id: 'p5', date: '2024-01-15', amount: 25000, status: 'PAID', receiptNumber: 'RCP-0655', period: 'January 2024' },
+    ]
   },
   {
     id: 'u3',
@@ -63,6 +72,10 @@ export const MOCK_UNITS: Unit[] = [
     lastRentPaymentDate: '2024-05-10',
     history: [
        { id: 'h2', date: '2020-01-01', type: 'CONSTITUTION_CHANGE', description: 'Converted from Proprietorship to Partnership' }
+    ],
+    rentHistory: [
+      { id: 'p6', date: '2024-05-10', amount: 40000, status: 'PAID', receiptNumber: 'RCP-1044', period: 'May 2024' },
+      { id: 'p7', date: '2024-04-12', amount: 40000, status: 'PAID', receiptNumber: 'RCP-0922', period: 'April 2024' },
     ]
   },
   {
@@ -81,7 +94,8 @@ export const MOCK_UNITS: Unit[] = [
     monthlyRent: 18000,
     rentStatus: 'PENDING',
     lastRentPaymentDate: '2024-04-15',
-    history: []
+    history: [],
+    rentHistory: []
   },
     {
     id: 'u5',
@@ -99,7 +113,10 @@ export const MOCK_UNITS: Unit[] = [
     monthlyRent: 12000,
     rentStatus: 'PAID',
     lastRentPaymentDate: '2024-05-02',
-    history: []
+    history: [],
+    rentHistory: [
+      { id: 'p8', date: '2024-05-02', amount: 12000, status: 'PAID', receiptNumber: 'RCP-1011', period: 'May 2024' }
+    ]
   }
 ];
 
