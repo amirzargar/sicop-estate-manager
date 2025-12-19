@@ -257,9 +257,13 @@ export default function App() {
 
   // --- Main Render ---
 
-  if (!currentUser) {
-    return <Login onLogin={handleLogin} users={users} />;
-  }
+ if (!currentUser) {
+return (
+<div style={{ padding: "40px", fontSize: "24px" }}>
+LOGIN BYPASSED. APP IS RENDERING.
+</div>
+);
+}
 
   return (
     <div className="flex h-screen bg-slate-50">
