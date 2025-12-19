@@ -33,7 +33,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, users }) => {
 
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden w-full max-w-md flex flex-col animate-fade-in-down">
+      <div className="bg-white rounded-2xl shadow-xl overflow-hidden w-full max-w-md flex flex-col">
         <div className="p-8 bg-blue-600 text-center">
            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mx-auto mb-4">
              <Building2 className="w-8 h-8 text-white" />
