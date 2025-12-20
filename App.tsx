@@ -258,11 +258,7 @@ export default function App() {
   // --- Main Render ---
 
  if (!currentUser) {
-return (
-<div style={{ padding: "40px", fontSize: "24px" }}>
-LOGIN BYPASSED. APP IS RENDERING.
-</div>
-);
+return <Login onLogin={handleLogin} users={users} />;
 }
 
   return (
