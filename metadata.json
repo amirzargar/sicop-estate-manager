@@ -1,0 +1,8 @@
+{
+  "name": "SICOP Estate Manager",
+  "description": "An enterprise-grade industrial estate management system following clean architecture principles, featuring Gemini-powered insights and RBAC.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
